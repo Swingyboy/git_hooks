@@ -1,7 +1,5 @@
-import os
 import pathlib
 import platform
-import sys
 import urllib.request
 
 
@@ -92,18 +90,16 @@ def log_subprocess_output(logger_name, process):
     while process.poll() is None:
         check_io()
 
-
-    
-def get_gitleaks(additional_path: str = None) -> str:
+   
+def get_gitleaks(install_path: str = None) -> str:
     platform_data = get_platform_data()
     os_type = platform_data["OS"]
     machine_type = platform_data["CPU"]
     package_name = get_package_name(os_type=os_type, mch_type=machine_type)
-
     file_path = pathlib.Path(__file__).parent / package_name
     
-    if additional_path:
-        exctraction_path = pathlib.Path(__file__).parent / additional_path
+    if install_path:
+        exctraction_path = pathlib.Path(__file__).parent / install_path
         exctraction_path /= "gitleaks"
     else:
         exctraction_path = pathlib.Path(__file__).parent / "gitleaks"
@@ -118,8 +114,8 @@ def get_gitleaks(additional_path: str = None) -> str:
 
 
 if __name__ == "__main__":
-    
     import subprocess
+    import sys
 
     GITLEAKS_REPORT = "report.json"
     GITLEAKS_OPTS = "detect --redact -v"
@@ -132,4 +128,4 @@ if __name__ == "__main__":
     command = f"{gitleaks_executable} {GITLEAKS_OPTS} --report-path {GITLEAKS_REPORT} --log-opts={GITLEAKS_GIT_LOGS}"
     gitleaks_process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
     log_subprocess_output(gitleaks_logger, gitleaks_process)
-    print(gitleaks_process.returncode)
+    sys.exit(gitleaks_process.returncode)
