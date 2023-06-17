@@ -1,4 +1,5 @@
 #!/usr/bin/python3
+import os
 import pathlib
 import platform
 import urllib.request
@@ -92,14 +93,14 @@ def get_gitleaks(clean_up: bool = False) -> str:
 
 
 if __name__ == "__main__":
-    import subprocess
     import sys
 
     GITLEAKS_REPORT = "report.json"
-    GITLEAKS_OPTS = "detect --redact -v"
+    GITLEAKS_OPTS = "protect --redact -v"
     GITLEAKS_GIT_LOGS = "--since=2023-05-01"
 
     gitleaks_executable = get_gitleaks()
     command = f"{gitleaks_executable} {GITLEAKS_OPTS} --report-path {GITLEAKS_REPORT} --log-opts={GITLEAKS_GIT_LOGS}"
-    gitleaks_process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
-    sys.exit(gitleaks_process.returncode)
+    exitCode = os.WEXITSTATUS(os.system(command))
+    print(exitCode)
+    sys.exit(exitCode)
