@@ -96,7 +96,7 @@ if __name__ == "__main__":
     import sys
 
     GITLEAKS_REPORT = "report.json"
-    GITLEAKS_OPTS = "protect --redact -v"
+    GITLEAKS_OPTS = "detect --redact -v"
     GITLEAKS_GIT_LOGS = "--since=2023-05-01"
 
     gitleaks_executable = get_gitleaks()
