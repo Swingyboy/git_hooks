@@ -74,6 +74,8 @@ def clean_up_path(path: pathlib.Path) -> None:
 
    
 def get_gitleaks(clean_up: bool = False) -> str:
+    if "gitleaks" in os.environ["PATH"]:
+        return "gitleaks"
     platform_data = get_platform_data()
     os_type = platform_data["OS"]
     machine_type = platform_data["CPU"]
