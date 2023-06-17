@@ -53,7 +53,7 @@ def download_file(package_name: str, download_path: pathlib.Path = None) -> None
     
 
 def exctrat_file(os_type: str, exctraction_path: str, file_path: str):
-    if os_type in ("WINDOWS", "WIN"):
+    if os_type.upper() in ("WINDOWS", "WIN"):
         from zipfile import ZipFile
 
         zip = ZipFile(file_path)
@@ -74,12 +74,9 @@ def clean_up_path(path: pathlib.Path) -> None:
     path.rmdir()
 
    
-def get_gitleaks(clean_up: bool = False) -> str:
+def get_gitleaks(os_type: str, machine_type: str, clean_up: bool = False) -> str:
     if "gitleaks" in os.environ["PATH"]:
         return "gitleaks"
-    platform_data = get_platform_data()
-    os_type = platform_data["OS"]
-    machine_type = platform_data["CPU"]
     package_name = get_package_name(os_type=os_type, mch_type=machine_type)
     file_path = pathlib.Path.home() / package_name
     exctraction_path = pathlib.Path.home() / "gitleaks"
@@ -113,9 +110,15 @@ if __name__ == "__main__":
     GITLEAKS_GIT_LOGS = "--since=2023-05-01"
 
     if read_git_config():
-        gitleaks_executable = get_gitleaks()
+        platform_data = get_platform_data()
+        os_type = platform_data["OS"]
+        machine_type = platform_data["CPU"]
+        gitleaks_executable = get_gitleaks(os_type, machine_type)
         command = f"{gitleaks_executable} {GITLEAKS_OPTS} --log-opts={GITLEAKS_GIT_LOGS}"
-        exitCode = os.WEXITSTATUS(os.system(command))
+        if os_type.upper() in ("WINDOWS", "WIN"):
+            exitCode = os.system(command)
+        else:
+            exitCode = os.WEXITSTATUS(os.system(command))
         sys.exit(exitCode)
     else:
         sys.exit(0)
