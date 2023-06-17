@@ -1,3 +1,4 @@
+#!/usr/bin/python3
 import pathlib
 import platform
 import urllib.request
@@ -41,10 +42,13 @@ def get_package_name(os_type: str, mch_type: str):
     return name
 
 
-def download_file(package_name:str) -> None:
+def download_file(package_name: str, download_path: pathlib.Path = None) -> None:
     url = "https://github.com/gitleaks/gitleaks/releases/download/v8.17.0/" + package_name
-    urllib.request.urlretrieve(url, package_name)
-
+    if download_path:
+        urllib.request.urlretrieve(url, download_path)
+    else:
+        urllib.request.urlretrieve(url, package_name)
+    
 
 def exctrat_file(os_type: str, exctraction_path: str, file_path: str):
     if os_type in ("WINDOWS", "WIN"):
@@ -67,47 +71,21 @@ def clean_up_path(path: pathlib.Path) -> None:
             item.unlink()
     path.rmdir()
 
-
-def log_subprocess_output(logger_name, process):
-    import logging
-
-    logger = logging.getLogger("gitleaks")
-
-    file_handler = logging.FileHandler(logger_name, mode="w")
-    formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s: %(message)s", datefmt="%d/%m/%Y %H:%M:%S")
-    file_handler.setFormatter(formatter)
-    logger.addHandler(file_handler)
-
-    def check_io():
-        while True:
-            output = process.stdout.readline().decode()
-            if output:
-                logger.log(logging.INFO, output)
-            else:
-                break
-
-    # keep checking stdout/stderr until the child exits
-    while process.poll() is None:
-        check_io()
-
    
-def get_gitleaks(install_path: str = None) -> str:
+def get_gitleaks(clean_up: bool = False) -> str:
     platform_data = get_platform_data()
     os_type = platform_data["OS"]
     machine_type = platform_data["CPU"]
     package_name = get_package_name(os_type=os_type, mch_type=machine_type)
-    file_path = pathlib.Path(__file__).parent / package_name
-    
-    if install_path:
-        exctraction_path = pathlib.Path(__file__).parent / install_path
-        exctraction_path /= "gitleaks"
-    else:
-        exctraction_path = pathlib.Path(__file__).parent / "gitleaks"
+    file_path = pathlib.Path.home() / package_name
+    exctraction_path = pathlib.Path.home() / "gitleaks"
 
-    if exctraction_path.exists():
+    print(exctraction_path)
+
+    if clean_up and exctraction_path.exists():
         clean_up_path(exctraction_path)
 
-    download_file(package_name=package_name)
+    download_file(package_name=package_name, download_path=file_path)
     exctrat_file(os_type, exctraction_path, file_path)
     file_path.unlink()
     return exctraction_path / "gitleaks"
@@ -121,11 +99,7 @@ if __name__ == "__main__":
     GITLEAKS_OPTS = "detect --redact -v"
     GITLEAKS_GIT_LOGS = "--since=2023-05-01"
 
-
-
     gitleaks_executable = get_gitleaks()
-    gitleaks_logger = str(gitleaks_executable)+".log"
     command = f"{gitleaks_executable} {GITLEAKS_OPTS} --report-path {GITLEAKS_REPORT} --log-opts={GITLEAKS_GIT_LOGS}"
     gitleaks_process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
-    log_subprocess_output(gitleaks_logger, gitleaks_process)
     sys.exit(gitleaks_process.returncode)
