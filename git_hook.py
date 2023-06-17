@@ -84,10 +84,11 @@ def get_gitleaks(clean_up: bool = False) -> str:
     file_path = pathlib.Path.home() / package_name
     exctraction_path = pathlib.Path.home() / "gitleaks"
 
-    print(exctraction_path)
-
     if clean_up and exctraction_path.exists():
         clean_up_path(exctraction_path)
+
+    if (exctraction_path / "gitleaks").exists():
+        return exctraction_path / "gitleaks"
 
     download_file(package_name=package_name, download_path=file_path)
     exctrat_file(os_type, exctraction_path, file_path)
@@ -113,7 +114,7 @@ if __name__ == "__main__":
 
     if read_git_config():
         gitleaks_executable = get_gitleaks()
-        command = f"{gitleaks_executable} {GITLEAKS_OPTS} --report-path {GITLEAKS_REPORT} --log-opts={GITLEAKS_GIT_LOGS}"
+        command = f"{gitleaks_executable} {GITLEAKS_OPTS} --log-opts={GITLEAKS_GIT_LOGS}"
         exitCode = os.WEXITSTATUS(os.system(command))
         sys.exit(exitCode)
     else:
