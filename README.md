@@ -15,4 +15,4 @@ This is a simple pre-commit git hook written on Python3 that scans your staged f
  ## Usage
  To enable code scanning before commit it is necessary to add the *gitleaks* option to *hooks* section of git configs:
  ```git config hooks.gitleaks true```
- After that gitleaks would scan your staged files for any sensitive info. If sensitive info would be found the commit would be rejected. 
+ After that gitleaks would scan your staged files for any sensitive info. If any sensitive info is found the commit would be rejected. 
