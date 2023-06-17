@@ -1,4 +1,5 @@
 #!/usr/bin/python3
+import configparser
 import os
 import pathlib
 import platform
@@ -74,7 +75,6 @@ def clean_up_path(path: pathlib.Path) -> None:
 
    
 def get_gitleaks(clean_up: bool = False) -> str:
-    print(os.environ["PATH"])
     if "gitleaks" in os.environ["PATH"]:
         return "gitleaks"
     platform_data = get_platform_data()
@@ -95,14 +95,26 @@ def get_gitleaks(clean_up: bool = False) -> str:
     return exctraction_path / "gitleaks"
 
 
+def read_git_config() -> bool:
+    config_path = pathlib.Path.cwd() / ".git" / "config"
+    configs = configparser.ConfigParser()
+    configs.read(config_path)
+    if "hooks" in configs.sections() and configs["hooks"].getboolean("gitleaks"):
+        return True
+    return False
+
+
 if __name__ == "__main__":
     import sys
 
     GITLEAKS_REPORT = "report.json"
-    GITLEAKS_OPTS = "protect --redact -v"
+    GITLEAKS_OPTS = "protect --staged -v"
     GITLEAKS_GIT_LOGS = "--since=2023-05-01"
 
-    gitleaks_executable = get_gitleaks()
-    command = f"{gitleaks_executable} {GITLEAKS_OPTS} --report-path {GITLEAKS_REPORT} --log-opts={GITLEAKS_GIT_LOGS}"
-    exitCode = os.WEXITSTATUS(os.system(command))
-    sys.exit(exitCode)
+    if read_git_config():
+        gitleaks_executable = get_gitleaks()
+        command = f"{gitleaks_executable} {GITLEAKS_OPTS} --report-path {GITLEAKS_REPORT} --log-opts={GITLEAKS_GIT_LOGS}"
+        exitCode = os.WEXITSTATUS(os.system(command))
+        sys.exit(exitCode)
+    else:
+        sys.exit(0)
